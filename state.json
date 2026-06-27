@@ -1,0 +1,74 @@
+{
+  "processed": [
+    {
+      "issue_url": "https://github.com/anthony-chaudhary/fak/issues/778",
+      "repo": "anthony-chaudhary/fak",
+      "issue_number": 778,
+      "status": "fixed",
+      "branch": "main",
+      "timestamp": "2026-06-26T12:00:00Z",
+      "summary": "Added real assertions to 4 vacuous tests named by the scorecard",
+      "pr": "https://github.com/anthony-chaudhary/fak/pull/814"
+    },
+    {
+      "issue_url": "https://github.com/qorexdevs/quicksave/issues/88",
+      "repo": "qorexdevs/quicksave",
+      "issue_number": 88,
+      "status": "fixed",
+      "branch": "main",
+      "timestamp": "2026-06-26T14:00:00Z",
+      "summary": "Added -x/--line-regexp flag to grep command (63 lines changed, 143 tests pass)",
+      "pr": "https://github.com/qorexdevs/quicksave/pull/90"
+    },
+    {
+      "issue_url": "https://github.com/nexu-io/open-design/issues/4618",
+      "repo": "nexu-io/open-design",
+      "issue_number": 4618,
+      "status": "fixed",
+      "branch": "main",
+      "timestamp": "2026-06-26T20:30:00Z",
+      "summary": "Hide empty tool_call/tool_call_update status rows in assistant process (2-line fix)"
+    },
+    {
+      "issue_url": "https://github.com/earendil-works/pi/issues/5763",
+      "repo": "earendil-works/pi",
+      "issue_number": 5763,
+      "status": "fixed",
+      "branch": "fix/5763-provider-error-bodies",
+      "timestamp": "2026-06-27T01:20:00Z",
+      "summary": "Add shared provider error formatter with body fallback for 6 providers"
+    },
+    {
+      "issue_url": "https://github.com/openclaw/openclaw/issues/40255",
+      "repo": "openclaw/openclaw",
+      "issue_number": 40255,
+      "status": "analyzed",
+      "timestamp": "2026-06-27T17:40:00Z",
+      "summary": "Regression: heartbeat prompt unconditionally overrides user config"
+    },
+    {
+      "issue_url": "https://github.com/earendil-works/pi/issues/5825",
+      "repo": "earendil-works/pi",
+      "issue_number": 5825,
+      "status": "analyzed",
+      "timestamp": "2026-06-27T17:40:00Z",
+      "summary": "Streaming markdown clearOnShrink forces scroll to bottom, 33 comments, PR #5846 open"
+    },
+    {
+      "issue_url": "https://github.com/karpathy/nanochat/issues/328",
+      "repo": "karpathy/nanochat",
+      "issue_number": 328,
+      "status": "analyzed",
+      "timestamp": "2026-06-27T17:40:00Z",
+      "summary": "Sign flipped in tokenizer eval relative diff formula"
+    }
+  ],
+  "last_scan": "2026-06-27T17:40:00Z",
+  "stats": {
+    "total_found": 54,
+    "total_fixed": 4,
+    "total_analyzed": 3,
+    "total_skipped": 0,
+    "total_failed": 0
+  }
+}
