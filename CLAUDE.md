@@ -241,12 +241,19 @@ Write to `~/issue-hunter-loop/reports/YYYY-MM-DD-HHmm.md`:
 
 ### 7. Upload to Feishu Drive
 
-Create a Markdown file in the Feishu Drive folder `Issue Hunter Reports`:
+Import the report as a Feishu docx into the `Issue Hunter Reports` folder:
 
 ```bash
-# Create folder if not exists (use lark-drive skill)
-# Upload report markdown (use lark-markdown skill)
+FOLDER_TOKEN=$(python3 -c "import json; print(json.load(open('$HOME/issue-hunter-loop/config.json'))['feishu']['drive_folder_token'])")
+
+lark-cli drive +import --type docx \
+  --file ~/issue-hunter-loop/reports/YYYY-MM-DD-HHmm.md \
+  --folder-token "$FOLDER_TOKEN" \
+  --name "Issue Hunter Report YYYY-MM-DD HH:mm" \
+  --as user
 ```
+
+Requires user auth with `space:folder:create` and `drive:docs:create` scopes.
 
 ### 8. Send Briefing via Feishu
 
