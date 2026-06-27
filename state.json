@@ -61,13 +61,103 @@
       "status": "analyzed",
       "timestamp": "2026-06-27T17:40:00Z",
       "summary": "Sign flipped in tokenizer eval relative diff formula"
+    },
+    {
+      "issue_url": "https://github.com/openclaw/openclaw/issues/43996",
+      "repo": "openclaw/openclaw",
+      "issue_number": 43996,
+      "status": "analyzed",
+      "timestamp": "2026-06-27T18:00:00Z",
+      "score": 18,
+      "summary": "Sandbox container no-new-privileges causes immediate exit",
+      "comment_assessment": {
+        "last_activity": "2026-06-27",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/earendil-works/pi/issues/4877",
+      "repo": "earendil-works/pi",
+      "issue_number": 4877,
+      "status": "analyzed",
+      "timestamp": "2026-06-27T18:00:00Z",
+      "score": 20,
+      "summary": "Session folder path encoding collision, MEMBER deeply engaged",
+      "comment_assessment": {
+        "last_activity": "2026-06-26",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/HKUDS/nanobot/issues/4307",
+      "repo": "HKUDS/nanobot",
+      "issue_number": 4307,
+      "status": "analyzed",
+      "timestamp": "2026-06-27T18:00:00Z",
+      "score": 16,
+      "summary": "Post-turn consolidation wipes agent delivery message",
+      "comment_assessment": {
+        "last_activity": "2026-06-27",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/fastfetch-cli/fastfetch/issues/2423",
+      "repo": "fastfetch-cli/fastfetch",
+      "issue_number": 2423,
+      "status": "analyzed",
+      "timestamp": "2026-06-27T18:00:00Z",
+      "score": 14,
+      "summary": "GPU detection wakes dGPU on dual-GPU laptops after kernel update",
+      "comment_assessment": {
+        "last_activity": "2026-06-27",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/Expensify/App/issues/94214",
+      "repo": "Expensify/App",
+      "issue_number": 94214,
+      "status": "analyzed",
+      "timestamp": "2026-06-27T18:00:00Z",
+      "score": 15,
+      "summary": "Tag editing page shows error, $250 bounty, 35 comments",
+      "comment_assessment": {
+        "last_activity": "2026-06-27",
+        "has_existing_pr": false,
+        "maintainer_stance": "pr-welcome",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/OrcaSlicer/OrcaSlicer/issues/14373",
+      "repo": "OrcaSlicer/OrcaSlicer",
+      "issue_number": 14373,
+      "status": "analyzed",
+      "timestamp": "2026-06-27T18:00:00Z",
+      "score": 13,
+      "summary": "BambuLab network plugin error, 19 comments",
+      "comment_assessment": {
+        "last_activity": "2026-06-27",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
     }
   ],
-  "last_scan": "2026-06-27T17:40:00Z",
+  "last_scan": "2026-06-27T18:00:00Z",
   "stats": {
-    "total_found": 54,
+    "total_found": 60,
     "total_fixed": 4,
-    "total_analyzed": 3,
+    "total_analyzed": 9,
     "total_skipped": 0,
     "total_failed": 0
   }
