@@ -6,7 +6,7 @@ Research-only automation: discover trending AI/Agent/LLM projects, find 3 high-q
 
 - **Research only** — do NOT fork, clone, fix, or push code
 - Work inside `~/issue-hunter-loop/`
-- Track all processed issues in `state.json` — NEVER re-process an issue
+- Track all processed issues in `state.json` — check it before selecting candidates, NEVER re-process an issue. `state.json` is the structural dedup mechanism. Every analyzed issue goes in, no exceptions.
 - One report per loop iteration, **always 3 issues**
 - Output report to `reports/YYYY-MM-DD-HHmm.md`
 
@@ -96,9 +96,9 @@ gh search issues --label "help wanted" --label bug --state open --sort updated -
 - Pushed within last 30 days
 - Language: Go, Python, Rust, TypeScript
 - NOT a hacktoberfest/spam/template repo
-- NOT already in `state.json`
+- NOT already in `state.json` (check by `issue_url` — exact match or same repo+number)
 
-**Scoring dimensions** (1-5 each, total /20):
+**Scoring dimensions** (1-5 each, total /25):
 
 | Dimension | 5 points | 1 point |
 |-----------|----------|---------|
@@ -115,15 +115,41 @@ gh search issues --label "help wanted" --label bug --state open --sort updated -
 - Pure data entry, typo fixes, config changes
 - `hacktoberfest` or `good first issue` labels (too competitive, too shallow)
 
-### 3. Select Top 3
+### 3. Community Status Assessment (MANDATORY)
 
-From the filtered list, pick the 3 highest-scoring issues across **diverse repos**. Avoid picking 2+ from the same repo. Prefer:
+**Before final selection**, read the full comment thread of each shortlisted candidate. Assess:
+
+#### A. Implementation status
+- Is there an existing PR linked in the comments? If so:
+  - What's its status? (open/closed/merged/draft)
+  - What's the quality? (passes CI? reviewed? maintainer feedback?)
+  - If a good implementation already exists → **demote heavily or skip**. The issue is already handled.
+- Are there comments like "I'm working on this" or "taking this" from active contributors? → **skip if claimed**.
+
+#### B. Timeliness
+- When was the last meaningful comment (not stale bot, not +1)?
+- If last activity > 60 days ago → **-2 to score** (may be stale or low priority)
+- If last activity < 7 days ago → **+1 to score** (hot topic)
+- Is the issue still reproducible on the latest version? Check for "still broken on vX.Y.Z" comments.
+
+#### C. Community viability
+- Are there multiple users confirming the same issue? → **strong signal**
+- Is there maintainer pushback? ("this is by design", "won't fix") → **skip**
+- Is the discussion constructive (debugging, narrowing down) or noise ("+1", "me too")?
+- Has a maintainer said "PR welcome" or "lgtm"? → **strong signal**
+
+**Adjust scores** based on this assessment before selecting the final 3.
+
+### 4. Select Top 3
+
+From the community-vetted shortlist, pick the 3 highest-scoring issues across **diverse repos**. Avoid picking 2+ from the same repo. Prefer:
 
 1. **Real bugs over feature requests** (more insight value)
 2. **Active community** (comments, reactions, recent activity)
 3. **Diverse technologies** (not all TypeScript, not all Python)
+4. **No existing quality implementation** (don't duplicate work)
 
-### 4. Deep Analysis — For Each Issue
+### 5. Deep Analysis — For Each Issue
 
 For each of the 3 selected issues, analyze:
 
@@ -148,7 +174,7 @@ For each of the 3 selected issues, analyze:
 
 Use `gh issue view` and `gh api` to read issue bodies and comments. If the fix strategy requires reading actual source code, use `gh api "repos/<owner>/<repo>/contents/<path>"` to fetch files without cloning.
 
-### 5. Write Report
+### 6. Write Report
 
 Write to `~/issue-hunter-loop/reports/YYYY-MM-DD-HHmm.md`:
 
@@ -197,7 +223,7 @@ Write to `~/issue-hunter-loop/reports/YYYY-MM-DD-HHmm.md`:
 - New repos added to watchlist: ...
 ```
 
-### 6. Upload to Feishu Drive
+### 7. Upload to Feishu Drive
 
 Create a Markdown file in the Feishu Drive folder `Issue Hunter Reports`:
 
@@ -206,7 +232,7 @@ Create a Markdown file in the Feishu Drive folder `Issue Hunter Reports`:
 # Upload report markdown (use lark-markdown skill)
 ```
 
-### 7. Send Briefing via Feishu
+### 8. Send Briefing via Feishu
 
 Send a concise text summary to the user via Feishu DM:
 
@@ -215,7 +241,7 @@ lark-cli im +messages-send --as bot --user-id ou_6a162aa9bad0f5860f74829757e6dad
   --markdown $'## 🎯 Issue Hunter 简报 — YYYY-MM-DD\n\n**Issue 1:** [repo] #N — title\n- 背景：...\n- 方案：...\n\n**Issue 2:** ...\n\n**Issue 3:** ...\n\n📄 完整报告：`reports/YYYY-MM-DD-HHmm.md`'
 ```
 
-### 8. Update State
+### 9. Update State
 
 Add entries to `state.json` for all 3 issues:
 
@@ -224,9 +250,17 @@ Add entries to `state.json` for all 3 issues:
   "issue_url": "https://github.com/owner/repo/issues/N",
   "repo": "owner/repo",
   "issue_number": N,
-  "status": "analyzed",
+  "status": "analyzed|skipped",
   "timestamp": "ISO-8601",
-  "summary": "one-line summary"
+  "score": X,
+  "summary": "one-line summary",
+  "comment_assessment": {
+    "last_activity": "ISO-8601",
+    "has_existing_pr": false,
+    "pr_quality": "none|draft|in-review|ready",
+    "maintainer_stance": "lgtm|pr-welcome|no-response|wont-fix",
+    "skip_reason": null
+  }
 }
 ```
 
