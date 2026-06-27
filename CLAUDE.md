@@ -237,7 +237,8 @@ Create a Markdown file in the Feishu Drive folder `Issue Hunter Reports`:
 Send a concise text summary to the user via Feishu DM:
 
 ```bash
-lark-cli im +messages-send --as bot --user-id ou_6a162aa9bad0f5860f74829757e6dad5 \
+FEISHU_USER_ID=$(cat ~/issue-hunter-loop/config.json | python3 -c "import sys,json; print(json.load(sys.stdin)['feishu']['user_open_id'])")
+lark-cli im +messages-send --as bot --user-id "$FEISHU_USER_ID" \
   --markdown $'## 🎯 Issue Hunter 简报 — YYYY-MM-DD\n\n**Issue 1:** [repo] #N — title\n- 背景：...\n- 方案：...\n\n**Issue 2:** ...\n\n**Issue 3:** ...\n\n📄 完整报告：`reports/YYYY-MM-DD-HHmm.md`'
 ```
 
