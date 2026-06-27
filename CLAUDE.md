@@ -67,16 +67,20 @@ gitsense radar --skills python,typescript,llm --days 90 --sample 20
 
 #### 1c. GitHub Trending — discover hot repos
 
-```bash
-# Trending today (via gh api)
-gh api search/repositories --jq '.items[:15] | .[] | "\(.full_name) [⭐\(.stargazers_count)] [\(.pushed_at[:10])] \(.description[:120])"' \
-  -f q='stars:>1000 pushed:>2026-06-01 topic:ai topic:agent topic:llm' \
-  -f sort=stars -f order=desc
+**IMPORTANT:** Use URL query string format, NOT `-f q=`. The `-f` flag returns 404 on the search endpoint.
 
-# Recently created, fast-growing AI repos
-gh api search/repositories --jq '.items[:10] | .[] | "\(.full_name) [⭐\(.stargazers_count)] [created:\(.created_at[:10])] \(.description[:120])"' \
-  -f q='created:>2026-01-01 stars:>5000 topic:ai' \
-  -f sort=stars -f order=desc
+```bash
+# Hot AI repos — pushed recently, stars > 3000
+gh api "search/repositories?q=stars:>3000+pushed:>$(date -d '30 days ago' +%Y-%m-%d)+topic:ai&sort=stars&order=desc&per_page=15" \
+  --jq '.items[] | "\(.full_name) [⭐\(.stargazers_count)] [pushed:\(.pushed_at[:10])] \(.description[:120])"'
+
+# Fast-growing agent repos — created this year, stars > 2000
+gh api "search/repositories?q=created:>2026-01-01+stars:>2000+topic:agent&sort=stars&order=desc&per_page=10" \
+  --jq '.items[] | "\(.full_name) [⭐\(.stargazers_count)] [created:\(.created_at[:10])] \(.description[:120])"'
+
+# LLM repos with recent activity
+gh api "search/repositories?q=stars:>5000+pushed:>$(date -d '30 days ago' +%Y-%m-%d)+topic:llm&sort=stars&order=desc&per_page=10" \
+  --jq '.items[] | "\(.full_name) [⭐\(.stargazers_count)] [pushed:\(.pushed_at[:10])] \(.description[:120])"'
 ```
 
 #### 1d. Global search — bugs with community interest
