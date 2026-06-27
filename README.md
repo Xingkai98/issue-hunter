@@ -6,15 +6,20 @@ Daily AI-powered open source issue discovery and analysis. Scans trending AI/Age
 
 Every day at 4:00 AM, an AI agent:
 
-1. **Multi-source discovery** — scans priority repos (openclaw, pi, hermes-agent, nanochat, minimind, nanobot), GitHub trending, GitSense, and global issue search
+1. **Multi-source discovery** — scans configurable priority repos (`repos.json`), GitHub trending, GitSense, and global issue search
 2. **Score & filter** — evaluates issues on technical depth, maintainer engagement, community interest, scope clarity, and analysis value
 3. **Community assessment** — reads full comment threads to check for existing implementations, timeliness, and maintainer stance
-4. **Deep analysis** — for the top 3 issues: background, root cause, fix strategy with specific code paths
+4. **Deep analysis** — for 6 issues (3 from priority repos, 3 from open exploration): background, root cause, fix strategy with specific code paths
 5. **Report** — writes `reports/YYYY-MM-DD-HHmm.md` and sends a briefing via Feishu
+
+## Configuration
+
+- `repos.json` — priority repository list (editable, tracked in git)
+- `config.json` — Feishu user ID (gitignored, template at `config.example.json`)
 
 ## Output
 
-Each report covers 3 issues with:
+Each report covers 6 issues with:
 - Project background (what it does, stars, language)
 - Problem description (what's broken, user impact, repro steps)
 - Fix strategy design (root cause, files to modify, risk assessment, alternatives)
@@ -23,6 +28,8 @@ Each report covers 3 issues with:
 
 ```
 ~/issue-hunter-loop/
+├── repos.json         # Configurable priority repo list
+├── config.example.json # Feishu config template
 ├── CLAUDE.md          # Full agent workflow instructions
 ├── state.json         # Structured dedup — all processed issues
 ├── COMPLETED.md       # Human-readable log

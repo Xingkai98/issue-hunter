@@ -1,13 +1,19 @@
 # Issue Hunter Loop — Research & Analysis
 
-Research-only automation: discover trending AI/Agent/LLM projects, find 3 high-quality issues, analyze background and design fix strategies, produce a report.
+Research-only automation: discover trending AI/Agent/LLM projects, find 6 high-quality issues (3 from priority repos, 3 from open exploration), analyze background and design fix strategies, produce a report.
+
+## Configuration
+
+- `config.json` — Feishu user open_id (gitignored, see `config.example.json`)
+- `repos.json` — priority repo list, editable (tracked, see `repos.example.json` for format)
 
 ## Core Rules
 
 - **Research only** — do NOT fork, clone, fix, or push code
 - Work inside `~/issue-hunter-loop/`
+- Read priority repos from `repos.json` at runtime — if empty or yields nothing useful, fill all 6 slots from exploration
 - Track all processed issues in `state.json` — check it before selecting candidates, NEVER re-process an issue. `state.json` is the structural dedup mechanism. Every analyzed issue goes in, no exceptions.
-- One report per loop iteration, **always 3 issues**
+- One report per loop iteration, **always 6 issues**
 - Output report to `reports/YYYY-MM-DD-HHmm.md`
 
 ## Workflow
@@ -27,28 +33,24 @@ Use **four sources** in parallel, then merge and deduplicate:
 
 #### 1a. Priority Repos (scan first)
 
-Scan these repos for open bugs and enhancements with maintainer participation:
-
-| Repo | Stars | Language | Focus |
-|------|-------|----------|-------|
-| `HKUDS/nanobot` | 44k | Python | AI agent framework |
-| `jingyaogong/minimind` | 52k | Python | LLM training/inference |
-| `karpathy/nanochat` | 55k | Python | LLM chat from scratch |
-| `openclaw/openclaw` | 380k | TypeScript | AI agent runtime |
-| `NousResearch/hermes-agent` | 203k | Python | AI agent framework |
-| `earendil-works/pi` | 66k | TypeScript | Agent toolkit (LLM API, agent loop, TUI, CLI) |
-
-**Dynamic expansion**: periodically discover new fast-growing AI/Agent/LLM repos (stars > 10k, growth > 1k/week, language Go/Python/Rust/TypeScript, topic `agent`/`llm`/`ai`). Add to this table when found.
+Read the priority repo list from `repos.json`. If the file is empty `[]` or missing, skip this step and source all 6 candidates from exploration (1b–1d).
 
 ```bash
-for repo in HKUDS/nanobot jingyaogong/minimind karpathy/nanochat openclaw/openclaw NousResearch/hermes-agent earendil-works/pi; do
-  gh api "repos/$repo/issues?labels=bug&state=open&per_page=10&sort=updated" \
-    --jq '.[] | "#\(.number) [👍\(.reactions.total_count)] [\(.updated_at[:10])] \(.title)"' &
-  gh api "repos/$repo/issues?labels=enhancement&state=open&per_page=5&sort=updated" \
-    --jq '.[] | "#\(.number) [👍\(.reactions.total_count)] [\(.updated_at[:10])] \(.title)"' &
-done
-wait
+# Read priority repos from config
+REPOS=$(python3 -c "import json; print(' '.join(r['repo'] for r in json.load(open('$HOME/issue-hunter-loop/repos.json'))))" 2>/dev/null || echo "")
+
+if [ -n "$REPOS" ]; then
+  for repo in $REPOS; do
+    gh api "repos/$repo/issues?labels=bug&state=open&per_page=10&sort=updated" \
+      --jq '.[] | "#\(.number) [👍\(.reactions.total_count)] [\(.updated_at[:10])] \(.title)"' &
+    gh api "repos/$repo/issues?labels=enhancement&state=open&per_page=5&sort=updated" \
+      --jq '.[] | "#\(.number) [👍\(.reactions.total_count)] [\(.updated_at[:10])] \(.title)"' &
+  done
+  wait
+fi
 ```
+
+**Dynamic expansion**: periodically discover new fast-growing AI/Agent/LLM repos (stars > 10k, growth > 1k/week, language Go/Python/Rust/TypeScript, topic `agent`/`llm`/`ai`). When found, append to `repos.json`.
 
 #### 1b. GitSense — automated issue discovery
 
@@ -140,10 +142,24 @@ gh search issues --label "help wanted" --label bug --state open --sort updated -
 
 **Adjust scores** based on this assessment before selecting the final 3.
 
-### 4. Select Top 3
+### 4. Select Top 6
 
-From the community-vetted shortlist, pick the 3 highest-scoring issues across **diverse repos**. Avoid picking 2+ from the same repo. Prefer:
+Select **6 issues total**, split across two tiers:
 
+**Tier A — 3 from priority repos** (if available):
+- Pick the 3 highest-scoring issues discovered from `repos.json`
+- If priority repos are empty or yield < 3 viable candidates, fill remaining slots from exploration
+
+**Tier B — 3 from open exploration** (trending, GitSense, global search):
+- Pick the 3 highest-scoring issues from all non-priority sources
+- Prioritize recently trending repos, fast-growing projects, and unexpected discoveries
+
+**Diversity rules** (apply across all 6):
+- No more than 2 issues from the same repo
+- At least 2 different languages across the set
+- Mix of bug fixes and well-scoped enhancements
+
+Prefer:
 1. **Real bugs over feature requests** (more insight value)
 2. **Active community** (comments, reactions, recent activity)
 3. **Diverse technologies** (not all TypeScript, not all Python)
@@ -244,7 +260,7 @@ lark-cli im +messages-send --as bot --user-id "$FEISHU_USER_ID" \
 
 ### 9. Update State
 
-Add entries to `state.json` for all 3 issues:
+Add entries to `state.json` for all 6 issues:
 
 ```json
 {

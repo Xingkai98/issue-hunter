@@ -1,0 +1,4 @@
+[
+  {"repo": "owner/repo1", "stars": 0, "language": "Python", "focus": "describe why this repo is on the list"},
+  {"repo": "owner/repo2", "stars": 0, "language": "TypeScript", "focus": "describe why this repo is on the list"}
+]
