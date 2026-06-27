@@ -151,13 +151,103 @@
         "maintainer_stance": "no-response",
         "skip_reason": null
       }
+    },
+    {
+      "issue_url": "https://github.com/openclaw/openclaw/issues/56653",
+      "repo": "openclaw/openclaw",
+      "issue_number": 56653,
+      "status": "analyzed",
+      "timestamp": "2026-06-28T04:07:00Z",
+      "score": 17,
+      "summary": "Slack reaction_added/removed events never delivered via Socket Mode",
+      "comment_assessment": {
+        "last_activity": "2026-06-27",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/openclaw/openclaw/issues/56217",
+      "repo": "openclaw/openclaw",
+      "issue_number": 56217,
+      "status": "analyzed",
+      "timestamp": "2026-06-28T04:07:00Z",
+      "score": 16,
+      "summary": "Secret provider crash-loop exhausts 1Password rate limits",
+      "comment_assessment": {
+        "last_activity": "2026-06-27",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/earendil-works/pi/issues/2023",
+      "repo": "earendil-works/pi",
+      "issue_number": 2023,
+      "status": "analyzed",
+      "timestamp": "2026-06-28T04:07:00Z",
+      "score": 19,
+      "summary": "pi.runWhenIdle() to schedule work after agent settles, COLLABORATOR spike done",
+      "comment_assessment": {
+        "last_activity": "2026-06-27",
+        "has_existing_pr": false,
+        "maintainer_stance": "pr-welcome",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/anthropics/claude-agent-sdk-python/issues/1060",
+      "repo": "anthropics/claude-agent-sdk-python",
+      "issue_number": 1060,
+      "status": "analyzed",
+      "timestamp": "2026-06-28T04:07:00Z",
+      "score": 18,
+      "summary": "PreToolUse defer inconsistent: wrapup_turn randomly True/False",
+      "comment_assessment": {
+        "last_activity": "2026-06-27",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/NousResearch/hermes-agent/issues/53667",
+      "repo": "NousResearch/hermes-agent",
+      "issue_number": 53667,
+      "status": "analyzed",
+      "timestamp": "2026-06-28T04:07:00Z",
+      "score": 15,
+      "summary": "v0.17.0 tool loader collapses to cronjob-only at runtime",
+      "comment_assessment": {
+        "last_activity": "2026-06-27",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/headroomlabs-ai/headroom/issues/1495",
+      "repo": "headroomlabs-ai/headroom",
+      "issue_number": 1495,
+      "status": "analyzed",
+      "timestamp": "2026-06-28T04:07:00Z",
+      "score": 14,
+      "summary": "Proxy retry: treat 529 overloaded same as 429 for upstream forwarders",
+      "comment_assessment": {
+        "last_activity": "2026-06-27",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
     }
   ],
-  "last_scan": "2026-06-27T18:00:00Z",
+  "last_scan": "2026-06-28T04:07:00Z",
   "stats": {
-    "total_found": 60,
+    "total_found": 66,
     "total_fixed": 4,
-    "total_analyzed": 9,
+    "total_analyzed": 15,
     "total_skipped": 0,
     "total_failed": 0
   }
