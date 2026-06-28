@@ -241,13 +241,103 @@
         "maintainer_stance": "no-response",
         "skip_reason": null
       }
+    },
+    {
+      "issue_url": "https://github.com/earendil-works/pi/issues/6083",
+      "repo": "earendil-works/pi",
+      "issue_number": 6083,
+      "status": "analyzed",
+      "timestamp": "2026-06-29T04:07:00Z",
+      "score": 18,
+      "summary": "z.ai GLM Coding Plan \u7f13\u5b58\u5931\u6548\uff0c\u6bcf\u6b21\u5de5\u5177\u8c03\u7528\u6d88\u801710-20%\u914d\u989d\uff0c\u793e\u533a\u8865\u4e01\u5df2\u9a8c\u8bc1",
+      "comment_assessment": {
+        "last_activity": "2026-06-29",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/openclaw/openclaw/issues/77642",
+      "repo": "openclaw/openclaw",
+      "issue_number": 77642,
+      "status": "analyzed",
+      "timestamp": "2026-06-29T04:07:00Z",
+      "score": 19,
+      "summary": "lossless-claw 5.2/5.3\u56de\u5f52\uff1a\u91cd\u590d\u56de\u7b54+\u5408\u6210'missing tool result'\u9519\u8bef\uff0c\u591a\u7528\u6237\u56de\u9000\u7248\u672c",
+      "comment_assessment": {
+        "last_activity": "2026-06-28",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/openclaw/openclaw/issues/77733",
+      "repo": "openclaw/openclaw",
+      "issue_number": 77733,
+      "status": "analyzed",
+      "timestamp": "2026-06-29T04:07:00Z",
+      "score": 16,
+      "summary": "5.3\u56de\u5f52\uff1a\u88f8/new\u548c/reset\u4e0d\u518d\u89e6\u53d1persona\u95ee\u5019\u8bed\uff0c\u547d\u4ee4\u88ab\u77ed\u8def\u5904\u7406",
+      "comment_assessment": {
+        "last_activity": "2026-06-28",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/socktainer/socktainer/issues/261",
+      "repo": "socktainer/socktainer",
+      "issue_number": 261,
+      "status": "analyzed",
+      "timestamp": "2026-06-29T04:07:00Z",
+      "score": 15,
+      "summary": "Docker Compose DNS\u89e3\u6790\u4e0d\u6309\u6587\u6863\u5de5\u4f5c\uff0c\u591a\u7528\u6237\u786e\u8ba4",
+      "comment_assessment": {
+        "last_activity": "2026-06-28",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/elastic/kibana/issues/274925",
+      "repo": "elastic/kibana",
+      "issue_number": 274925,
+      "status": "analyzed",
+      "timestamp": "2026-06-29T04:07:00Z",
+      "score": 16,
+      "summary": "\u5b89\u5168\u89c4\u5219\u53d8\u66f4\u5386\u53f2\u529f\u80fd\uff1a\u5df2\u6709\u89c4\u5219\u7f3a\u5c11\u57fa\u7ebf\u5feb\u7167",
+      "comment_assessment": {
+        "last_activity": "2026-06-28",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/NousResearch/hermes-agent/issues/54354",
+      "repo": "NousResearch/hermes-agent",
+      "issue_number": 54354,
+      "status": "analyzed",
+      "timestamp": "2026-06-29T04:07:00Z",
+      "score": 17,
+      "summary": "Docker\u540e\u7aef\uff1a\u955c\u50cf\u62c9\u53d6\u524d\u9996\u6b21\u5de5\u5177\u8c03\u7528\u5728\u5bbf\u4e3b\u673a\u6267\u884c\uff08\u6c99\u7bb1\u9003\u9038\uff09",
+      "comment_assessment": {
+        "last_activity": "2026-06-28",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
     }
   ],
-  "last_scan": "2026-06-28T04:07:00Z",
+  "last_scan": "2026-06-29T04:07:00Z",
   "stats": {
-    "total_found": 66,
+    "total_found": 72,
     "total_fixed": 4,
-    "total_analyzed": 15,
+    "total_analyzed": 21,
     "total_skipped": 0,
     "total_failed": 0
   }
