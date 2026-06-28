@@ -9,6 +9,7 @@ Research-only automation: discover trending AI/Agent/LLM projects, find 6 high-q
 
 ## Core Rules
 
+- **所有产出（报告、简报、分析）必须使用简体中文** — 包括 issue 标题可以保留原文，但背景、问题分析、修复方案等描述性内容必须翻译为中文
 - **Research only** — do NOT fork, clone, fix, or push code
 - Work inside `~/issue-hunter-loop/`
 - Read priority repos from `repos.json` at runtime — if empty or yields nothing useful, fill all 6 slots from exploration
