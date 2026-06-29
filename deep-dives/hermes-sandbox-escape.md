@@ -1,208 +1,237 @@
 # 深度分析：Hermes Agent Docker 沙箱逃逸漏洞
 
-> 适合面试讨论的安全案例分析
 > Issue: https://github.com/NousResearch/hermes-agent/issues/54354
+> 状态：无人认领，无 PR，0 条评论
 
 ---
 
-## 一、什么是这个漏洞
+## 一、漏洞描述
 
-**一句话：** Hermes Agent 在 Docker 沙箱模式下，首次工具调用会在容器镜像拉取完成之前直接在宿主机上执行。
+**一句话：** Hermes Agent 配置 Docker 后端后，首次工具调用在容器镜像拉取完成之前直接在宿主机上执行。
 
-**后果：** 用户的文件操作、终端命令、代码执行在宿主机上运行而非隔离的 Docker 容器内——这本质上是一次**沙箱逃逸**。
-
-```
-用户发送 "显示当前文件路径"
-  → Hermes 开始拉取 Docker 镜像（异步，最长 120s）
-  → 工具调用到达，容器还没就绪
-  → 回退到宿主机执行 → 返回 ~/username/...（宿主机路径！）
-  
-用户再次发送相同命令
-  → 容器已就绪 → 返回 /root/...（容器内路径）✓
-```
+**严重程度：** 中高——沙箱隔离在冷启动窗口内被绕过，属于实质上的沙箱逃逸。
 
 ---
 
 ## 二、源码级根因分析
 
-### 2.1 核心文件
+### 2.1 受影响文件
 
 | 文件 | 作用 |
 |------|------|
 | `tools/environments/docker.py` | Docker 沙箱环境实现 |
-| `tools/terminal_tool.py` | 终端工具调度 + 环境生命周期管理 |
-| `agent/tool_executor.py` | 工具调用执行入口 |
+| `tools/terminal_tool.py` | 终端工具调度 + 环境生命周期 |
 
-### 2.2 环境创建——不做容器启动
+### 2.2 环境配置解析——默认值是 local
 
-`tools/terminal_tool.py` 中的 `_create_environment()` 函数：
+`tools/terminal_tool.py` 第 1244 行：
 
 ```python
-def _create_environment(env_type, image, cwd, timeout, ...):
+env_type = os.getenv("TERMINAL_ENV", "local")
+```
+
+如果 `TERMINAL_ENV` 环境变量未正确传播，`env_type` 回退为 `"local"`——工具直接在宿主机执行。
+
+### 2.3 Docker 容器创建——懒加载，但同步阻塞
+
+`DockerEnvironment.__init__()` 只做参数校验，**不启动容器**（docker.py 第 606 行）：
+```python
+self._container_id: Optional[str] = None
+```
+
+容器在 `run()` 方法中首次使用时才启动（docker.py 第 925-968 行）：
+```python
+result = subprocess.run(
+    run_cmd,
+    capture_output=True, text=True,
+    timeout=120,  # image pull may take a while
+    check=True,
+)
+```
+
+这是**同步阻塞**的——`subprocess.run(timeout=120)` 等待 `docker run -d` 完成（包括镜像拉取）。所以理论上首次工具调用**应该**等待容器就绪。
+
+### 2.4 真正的根因——配置传播竞态
+
+问题不在 Docker 代码本身，而在**配置传播层**：
+
+1. 用户在 `config.yaml` 中设置 `terminal.backend: docker`
+2. Gateway 启动时需将配置转为环境变量 `TERMINAL_ENV=docker`
+3. 首次工具调用到达时，配置可能尚未完全传播——`TERMINAL_ENV` 尚未设置
+4. `_get_env_config()` 读取 `os.getenv("TERMINAL_ENV", "local")` → 返回 `"local"`
+5. 工具在**本地**执行（宿主机），同时配置传播在后台完成
+6. 第二次调用时 `TERMINAL_ENV=docker` 已就绪 → 正常在容器内执行
+
+**证据链：**
+- 关联 issue #25402："terminal.backend=local can still use Docker when stale Docker config keys remain"——配置传播/残留问题
+- Reporter 原话："first tool call runs on local before docker instance is ready"
+- Reporter 提到 PR #1276 添加了 Docker preflight 但**没有预拉取镜像或阻塞工具调用**
+
+### 2.5 竞态时序图
+
+```
+Gateway 启动
+  ├─ 读取 config.yaml (terminal.backend: docker)
+  ├─ 设置 TERMINAL_ENV=docker ───────┐ (异步传播)
+  │                                   │
+首次工具调用 ←────────────────────────┘ (可能还未传播完成)
+  ├─ os.getenv("TERMINAL_ENV", "local") → "local"
+  ├─ _create_environment("local", ...) → LocalEnvironment
+  ├─ 命令在宿主机上执行！← 沙箱逃逸
+  └─ 返回宿主机路径 (如 ~/username/...)
+
+TERMINAL_ENV=docker 传播完成
+
+第二次工具调用
+  ├─ os.getenv("TERMINAL_ENV", "local") → "docker"
+  ├─ _create_environment("docker", ...) → DockerEnvironment
+  ├─ docker run -d ... (阻塞拉取镜像)
+  └─ 命令在容器内执行 ✓
+```
+
+---
+
+## 三、修复方案设计
+
+### 方案概述
+
+修改 `tools/terminal_tool.py` 中的环境配置解析逻辑，确保 Docker 配置的读取不依赖环境变量传播时序。
+
+### 改动 1：`_get_env_config()` —— 直接从配置文件读取后端类型
+
+**文件：** `tools/terminal_tool.py`，约第 1244 行
+
+**现状：**
+```python
+env_type = os.getenv("TERMINAL_ENV", "local")
+```
+
+**改为：**
+```python
+# 优先从 config.yaml 读取，避免环境变量传播竞态
+env_type = _resolve_backend_type()
+
+def _resolve_backend_type() -> str:
+    """从配置源读取 terminal backend 类型，不依赖环境变量传播时序。
+    
+    优先级：TERMINAL_ENV 环境变量 > config.yaml > 默认 local
+    """
+    env_val = os.getenv("TERMINAL_ENV")
+    if env_val:
+        return env_val
+    
+    # 直接从 config.yaml 读取，绕过环境变量传播延迟
+    try:
+        from hermes_cli.config import load_config
+        cfg = load_config()
+        backend = cfg.get("terminal", {}).get("backend", "local")
+        if backend in ("docker", "singularity", "modal", "daytona", "ssh", "local"):
+            return backend
+    except Exception:
+        pass
+    
+    return "local"
+```
+
+### 改动 2：`_get_env_config()` —— 首次调用时硬等待配置就绪
+
+**文件：** `tools/terminal_tool.py`
+
+如果 `_resolve_backend_type()` 返回 `"local"` 但后续发现 Docker 相关配置项非空，说明配置传播可能尚未完成——应等待片刻后重试：
+
+```python
+# 在 _get_env_config() 中，解析完 env_type 后追加
+docker_image = os.getenv("TERMINAL_DOCKER_IMAGE")
+docker_volumes_raw = os.getenv("TERMINAL_DOCKER_VOLUMES")
+
+# 检测配置不一致：env_type=local 但 Docker 配置已设置
+if env_type == "local" and (docker_image or docker_volumes_raw):
+    logger.warning(
+        "Backend is 'local' but Docker config keys are present. "
+        "This may indicate a config propagation race. "
+        "Waiting 2s and re-checking..."
+    )
+    time.sleep(2)
+    env_type = os.getenv("TERMINAL_ENV", env_type)
     if env_type == "local":
-        return _LocalEnvironment(cwd=cwd, timeout=timeout)
-    elif env_type == "docker":
-        # 创建 DockerEnvironment 实例
-        # 注意：这里只做参数校验，不启动容器！
-        return DockerEnvironment(image=image, ...)
+        logger.warning(
+            "Backend still 'local' after wait. Docker config keys exist "
+            "but TERMINAL_ENV is not set. Falling back to local — if you "
+            "intended Docker, check your config propagation."
+        )
 ```
 
-`DockerEnvironment.__init__()` 做了什么：
-- 验证 Docker 可执行文件存在（`_ensure_docker_available()`）
-- 构建资源限制参数（`--cpus`, `--memory`, `--pids-limit`）
-- 设置卷挂载和安全选项
-- **不启动容器**——`self._container_id = None`
+### 改动 3：`terminal_tool.py` —— 首次创建环境时预拉取镜像
 
-### 2.3 容器启动——懒加载，120 秒超时
+**文件：** `tools/terminal_tool.py`，约第 2205 行（`_create_environment` 调用后）
 
-容器在第一次需要时才启动（`docker.py` 第 940-968 行）：
+在 Docker 环境创建后，立即触发镜像预拉取（在 `__init__` 阶段做，可配置超时）：
 
 ```python
-# 关键代码段（简化）
-if not reused:
-    run_cmd = [
-        self._docker_exe, "run", "-d",
-        "--name", container_name,
-        *label_args,
-        "-w", cwd,
-        *all_run_args,
-        image,
-        "sleep", "infinity",
-    ]
-    result = subprocess.run(
-        run_cmd,
-        capture_output=True, text=True,
-        timeout=120,  # ← image pull may take a while
-        check=True,
-    )
-    self._container_id = result.stdout.strip()
+# _create_environment 返回后追加
+if env_type == "docker" and hasattr(new_env, 'prewarm'):
+    try:
+        new_env.prewarm(timeout=30)  # 预拉取，短超时
+    except Exception as e:
+        logger.warning("Docker prewarm failed: %s", e)
 ```
 
-**设计决策：** `timeout=120` 意味着镜像拉取最多等待 2 分钟。在这 120 秒内，`self._container_id` 仍然是 `None`。
-
-### 2.4 命令执行——断言容器已存在
-
-`_run_bash()` 方法（第 1011 行）：
+**同时在 `docker.py` 的 `DockerEnvironment` 中添加 `prewarm()` 方法：**
 
 ```python
-def _run_bash(self, cmd_string, *, login=False, timeout=120):
-    assert self._container_id, "Container not started"  # ← 硬断言
-    cmd = [self._docker_exe, "exec"]
-    cmd.extend([self._container_id])
-    ...
+def prewarm(self, timeout=30):
+    """预拉取镜像但不执行命令。在环境创建时调用，缩短首次工具调用延迟。"""
+    if self._container_id:
+        return  # 已就绪
+    # 触发容器创建（会拉取镜像）
+    self.run("true", timeout=timeout)
 ```
 
-如果容器未启动，这里直接 `AssertionError` 崩溃。
+### 改动 4（保险措施）：`docker.py` —— 绝不容忍不安全回退
 
-### 2.5 真正的问题——环境就绪前工具已开始执行
+**文件：** `tools/environments/docker.py`
 
-问题出在**工具执行调度层**和**环境懒加载**之间的竞态：
+在 `DockerEnvironment.__init__()` 末尾添加：
 
-1. Agent 收到用户消息，决定调用工具（如 `read_file`）
-2. 工具执行器调用 `get_active_env(task_id)` 获取当前环境
-3. 如果是首次调用，环境要么不存在（返回 None），要么正在初始化中
-4. 环境不存在时，系统**回退到本地环境**执行工具
-5. 与此同时，Docker 容器的 `docker run` 正在后台拉取镜像
-
-**关键缺陷：** 没有"等待容器就绪"的同步机制。工具调用和环境就绪是两个独立的时间线，它们在首次调用时产生竞态。
-
-### 2.6 相关修复尝试——PR #1276 做了什么（以及没做什么）
-
-PR #1276（"clearer docker backend preflight errors"）：
-- ✅ 添加了 Docker 可执行文件存在性检查
-- ❌ **没有预拉取镜像**
-- ❌ **没有阻塞工具调用直到容器就绪**
-- ❌ **没有添加"容器未就绪"的明确错误提示**
-
-所以 PR #1276 修复了"Docker 没装时给出更好的错误提示"，但没有解决"Docker 装了但镜像没拉完时的行为"。
-
----
-
-## 三、为什么这是面试好素材
-
-### 3.1 涉及的计算机科学基础概念
-
-| 概念 | 在这个 bug 中的体现 |
-|------|-------------------|
-| **竞态条件** | 工具调用和容器就绪是两个异步时间线，首次调用时产生竞态 |
-| **懒加载 vs 预加载** | 镜像拉取的懒加载策略节省了启动时间，但引入了冷启动窗口 |
-| **故障开放 vs 故障关闭** | 当 Docker 不可用时，系统选择了"回退到宿主机"（故障开放）而非"拒绝执行"（故障关闭）——安全上的错误选择 |
-| **纵深防御** | 单一安全边界（Docker 容器）被绕过时，没有第二道防线 |
-| **幂等性** | 同一个命令第一次和第二次执行产生不同结果（宿主机 vs 容器内） |
-
-### 3.2 面试中可以讨论的角度
-
-**角度 1：如果让你修，你怎么设计？**
-
-- 方案 A：添加就绪守卫——工具执行前检查 `container_id is not None`，未就绪则阻塞等待或返回明确错误
-- 方案 B：预拉取——Gateway 启动时拉取镜像，消除冷启动窗口
-- 方案 C：故障关闭——当 Docker 配置了但不可用时，拒绝执行而非回退到宿主机
-- **最佳实践：** B + C 组合——启动时预热 + 运行时绝不回退到不安全路径
-
-**角度 2：这个 bug 反映的系统设计原则**
-
-- "Never fall back to a less secure path" — 安全系统不应有"降级到不安全"的选项
-- "Fail closed, not fail open" — 安全组件故障时应拒绝访问，而非放行
-- 懒加载的代价——性能优化（延迟启动）引入了安全窗口
-
-**角度 3：如何从代码层面发现这类问题**
-
-- 搜索 `fallback`、`default`、`local` 等关键词在安全敏感路径中的使用
-- 检查所有 `get_active_env()` 的调用点，看返回值 None 时如何处理
-- 审计容器创建和命令执行之间的时间窗口
-
----
-
-## 四、修复方案设计
-
-### 推荐方案：三管齐下
-
-```
-第一层（预防）：Gateway 启动时预热
-  → hermes gateway start 时执行 docker pull <image>
-  → 如果拉取失败，启动时就报错（而非等到首次工具调用）
-
-第二层（保护）：工具执行入口加守卫
-  → 在 _create_environment 和 get_active_env 之间插入同步点
-  → while container_not_ready: wait_or_error()
-  → 绝不回退到不太安全的路径
-
-第三层（监控）：添加可观测性
-  → 记录"容器就绪等待时间"指标
-  → 当发生环境回退时发送告警
-```
-
-### 具体代码改动
-
-**`tools/terminal_tool.py`** — 在 `get_active_env()` 返回 None 时：
 ```python
-env = get_active_env(task_id)
-if env is None:
-    # 不应该回退到本地——配置了 Docker 就应该用 Docker
-    raise EnvironmentNotReadyError(
-        "Docker container is still starting. Please retry in a moment."
+# 确保不会回退到不安全的执行路径
+self._started = False
+
+def _run_bash(self, cmd_string, ...):
+    assert self._container_id, (
+        "Container not started — Docker backend must have a running container. "
+        "This is a bug: the environment should be started before command execution."
     )
 ```
 
-**`tools/environments/docker.py`** — 添加就绪等待：
-```python
-def wait_until_ready(self, timeout=120):
-    """阻塞直到容器就绪或超时"""
-    deadline = time.time() + timeout
-    while not self._container_id:
-        if time.time() > deadline:
-            raise TimeoutError("Docker container failed to start")
-        time.sleep(0.5)
-```
+### 改动优先级
+
+| 优先级 | 改动 | 说明 |
+|--------|------|------|
+| **P0（必须）** | 改动 1 | 从配置文件直接读取后端类型，绕过环境变量传播竞态 |
+| **P1（强烈建议）** | 改动 2 | 检测配置不一致并告警，帮助发现传播问题 |
+| **P2（改善体验）** | 改动 3 | 预拉取镜像缩短冷启动延迟 |
+| **P3（纵深防御）** | 改动 4 | 代码层面确保不会静默回退 |
 
 ---
 
-## 五、复盘总结
+## 四、为什么这是面试好素材
 
-| 维度 | 评价 |
-|------|------|
-| **严重程度** | 中高——沙箱隔离被绕过，但仅影响冷启动首次调用 |
-| **发现难度** | 中——需要理解 Docker 懒加载机制 + 工具调度时序 |
-| **修复难度** | 低——添加守卫条件即可，不涉及架构变更 |
-| **根因类型** | 设计缺陷——懒加载 + 故障开放 + 缺少同步机制 |
-| **教训** | 安全边界不能有"临时回退"路径；性能优化的懒加载在安全路径上需要配套的同步机制 |
+| 概念 | 在漏洞中的体现 |
+|------|--------------|
+| **竞态条件** | 配置传播与首次工具调用之间的时序竞争 |
+| **故障开放 vs 故障关闭** | `env_type` 回退到 `"local"` 而非报错——安全上的错误选择 |
+| **默认值安全** | `os.getenv("TERMINAL_ENV", "local")` 的默认值 `"local"` 是不安全的默认值 |
+| **纵深防御** | 单层防御（环境变量）被突破后无第二道防线 |
+| **幂等性** | 同一命令第一次（宿主机）和第二次（容器）结果不同 |
+| **可观测性** | 缺少告警机制——用户可能长期未发现工具在宿主机执行 |
+
+---
+
+## 五、关联资源
+
+- Issue: https://github.com/NousResearch/hermes-agent/issues/54354
+- 相关 Issue: #25402（配置残留导致后端选择不一致）
+- 相关 PR: #1276（Docker preflight 检查，但未修复此问题）
+- 提交修复前需签署 CLA：https://www.nousresearch.com/cla
+- 贡献指南：https://github.com/NousResearch/hermes-agent/blob/main/CONTRIBUTING.md
