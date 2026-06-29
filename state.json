@@ -331,13 +331,103 @@
         "maintainer_stance": "no-response",
         "skip_reason": null
       }
+    },
+    {
+      "issue_url": "https://github.com/openclaw/openclaw/issues/81484",
+      "repo": "openclaw/openclaw",
+      "issue_number": 81484,
+      "status": "analyzed",
+      "timestamp": "2026-06-30T04:07:00Z",
+      "score": 17,
+      "summary": "Discord 5.7\u7fa4\u7ec4\u56de\u590d\u56de\u5f52\uff1a\u6d88\u606f\u8d1f\u8f7d\u635f\u574f+\u91cd\u590d\u53d1\u9001\u5faa\u73af",
+      "comment_assessment": {
+        "last_activity": "2026-06-29",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/openclaw/openclaw/issues/81934",
+      "repo": "openclaw/openclaw",
+      "issue_number": 81934,
+      "status": "analyzed",
+      "timestamp": "2026-06-30T04:07:00Z",
+      "score": 16,
+      "summary": "5.12\u5347\u7ea7\u540emacOS\u591a\u5173\u952e\u529f\u80fd\u6545\u969c(Gmail/Dropbox/PDF)",
+      "comment_assessment": {
+        "last_activity": "2026-06-29",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/earendil-works/pi/issues/6108",
+      "repo": "earendil-works/pi",
+      "issue_number": 6108,
+      "status": "analyzed",
+      "timestamp": "2026-06-30T04:07:00Z",
+      "score": 15,
+      "summary": "/reload\u65f6\u6269\u5c55\u4f9d\u8d56\u526f\u4f5c\u7528\u91cd\u590d\u6267\u884c\uff0c\u6a21\u5757\u7f13\u5b58\u6e05\u9664\u8fc7\u4e8e\u6fc0\u8fdb",
+      "comment_assessment": {
+        "last_activity": "2026-06-29",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/NousResearch/hermes-agent/issues/54891",
+      "repo": "NousResearch/hermes-agent",
+      "issue_number": 54891,
+      "status": "analyzed",
+      "timestamp": "2026-06-30T04:07:00Z",
+      "score": 14,
+      "summary": "google-gemini-cli OAuth\u7aef\u70b9\u5e9f\u5f03\u65e0\u66ff\u6362\u65b9\u6848",
+      "comment_assessment": {
+        "last_activity": "2026-06-29",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/yuliskov/SmartTube/issues/5831",
+      "repo": "yuliskov/SmartTube",
+      "issue_number": 5831,
+      "status": "analyzed",
+      "timestamp": "2026-06-30T04:07:00Z",
+      "score": 13,
+      "summary": "Android TV\u9996\u9875\u968f\u673a\u89c6\u9891\u70b9\u51fb\u6253\u5f00\u9891\u9053\u800c\u975e\u64ad\u653e",
+      "comment_assessment": {
+        "last_activity": "2026-06-29",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/HKUDS/nanobot/issues/4291",
+      "repo": "HKUDS/nanobot",
+      "issue_number": 4291,
+      "status": "analyzed",
+      "timestamp": "2026-06-30T04:07:00Z",
+      "score": 14,
+      "summary": "spawn\u5de5\u5177\u652f\u6301\u5b50agent\u4f7f\u7528\u914d\u7f6e\u7684\u6a21\u578b\u9884\u8bbe",
+      "comment_assessment": {
+        "last_activity": "2026-06-29",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
     }
   ],
-  "last_scan": "2026-06-29T04:07:00Z",
+  "last_scan": "2026-06-30T04:07:00Z",
   "stats": {
-    "total_found": 72,
+    "total_found": 78,
     "total_fixed": 4,
-    "total_analyzed": 21,
+    "total_analyzed": 27,
     "total_skipped": 0,
     "total_failed": 0
   }
