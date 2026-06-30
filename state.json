@@ -421,13 +421,103 @@
         "maintainer_stance": "no-response",
         "skip_reason": null
       }
+    },
+    {
+      "issue_url": "https://github.com/openclaw/openclaw/issues/38327",
+      "repo": "openclaw/openclaw",
+      "issue_number": 38327,
+      "status": "analyzed",
+      "timestamp": "2026-07-01T04:07:00Z",
+      "score": 18,
+      "summary": "google-vertex\u957f\u671f\u56de\u5f52: Cannot convert undefined or null to object, 9\u8bc4\u8bba\ud83d\udc4d3",
+      "comment_assessment": {
+        "last_activity": "2026-06-30",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/NousResearch/hermes-agent/issues/55677",
+      "repo": "NousResearch/hermes-agent",
+      "issue_number": 55677,
+      "status": "analyzed",
+      "timestamp": "2026-07-01T04:07:00Z",
+      "score": 16,
+      "summary": "\u4e0a\u4e0b\u6587\u538b\u7f29Jinja\u6a21\u677f\u9519\u8bef\u5d29\u6e83+\u4f1a\u8bdd\u635f\u574f, \u7b2c2-3\u6b21\u538b\u7f29\u5931\u8d25",
+      "comment_assessment": {
+        "last_activity": "2026-06-30",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/earendil-works/pi/issues/6187",
+      "repo": "earendil-works/pi",
+      "issue_number": 6187,
+      "status": "analyzed",
+      "timestamp": "2026-07-01T04:07:00Z",
+      "score": 14,
+      "summary": "WSL\u4e0bGitHub Copilot\u8bbe\u5907\u6388\u6743\u6210\u529f\u540e\u767b\u5f55\u6302\u8d77",
+      "comment_assessment": {
+        "last_activity": "2026-06-30",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/WhiskeySockets/Baileys/issues/2672",
+      "repo": "WhiskeySockets/Baileys",
+      "issue_number": 2672,
+      "status": "analyzed",
+      "timestamp": "2026-07-01T04:07:00Z",
+      "score": 15,
+      "summary": "WhatsApp Web Passkey\u8ba4\u8bc1\u540e\u6d41\u7a0b\u5361\u4f4f, 39\u8bc4\u8bba",
+      "comment_assessment": {
+        "last_activity": "2026-06-30",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/godotengine/godot/issues/120486",
+      "repo": "godotengine/godot",
+      "issue_number": 120486,
+      "status": "analyzed",
+      "timestamp": "2026-07-01T04:07:00Z",
+      "score": 14,
+      "summary": "Godot 4.7 Inspector\u65e0\u6cd5\u4fee\u6539\u5bfc\u51fa\u5b57\u5178\u4e2dResource\u7684\u5c5e\u6027, 4.6.x\u6b63\u5e38",
+      "comment_assessment": {
+        "last_activity": "2026-06-30",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/Expensify/App/issues/95011",
+      "repo": "Expensify/App",
+      "issue_number": 95011,
+      "status": "analyzed",
+      "timestamp": "2026-07-01T04:07:00Z",
+      "score": 13,
+      "summary": "\u79fb\u52a8\u8d39\u7528\u540e\u81ea\u5b9a\u4e49\u5b57\u6bb5\u5217\u4e0d\u663e\u793a, $250\u8d4f\u91d1",
+      "comment_assessment": {
+        "last_activity": "2026-06-30",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
     }
   ],
-  "last_scan": "2026-06-30T04:07:00Z",
+  "last_scan": "2026-07-01T04:07:00Z",
   "stats": {
-    "total_found": 78,
+    "total_found": 84,
     "total_fixed": 4,
-    "total_analyzed": 27,
+    "total_analyzed": 33,
     "total_skipped": 0,
     "total_failed": 0
   }
