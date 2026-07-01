@@ -511,13 +511,103 @@
         "maintainer_stance": "no-response",
         "skip_reason": null
       }
+    },
+    {
+      "issue_url": "https://github.com/openclaw/openclaw/issues/98540",
+      "repo": "openclaw/openclaw",
+      "issue_number": 98540,
+      "status": "analyzed",
+      "timestamp": "2026-07-02T04:07:00Z",
+      "score": 16,
+      "summary": "Composer\u663e\u793a\u7a7a\u95f2\u4f46agent\u6b63\u5728\u6267\u884c\u5de5\u5177\uff0cUI\u72b6\u6001\u4e0d\u540c\u6b65",
+      "comment_assessment": {
+        "last_activity": "2026-07-01",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/NousResearch/hermes-agent/issues/56516",
+      "repo": "NousResearch/hermes-agent",
+      "issue_number": 56516,
+      "status": "analyzed",
+      "timestamp": "2026-07-02T04:07:00Z",
+      "score": 15,
+      "summary": "\u63a8\u7406\u6a21\u578breasoning_content\u88ab\u8bef\u5224\u4e3a\u7a7a\u6d41",
+      "comment_assessment": {
+        "last_activity": "2026-07-01",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/earendil-works/pi/issues/6206",
+      "repo": "earendil-works/pi",
+      "issue_number": 6206,
+      "status": "analyzed",
+      "timestamp": "2026-07-02T04:07:00Z",
+      "score": 15,
+      "summary": "\u4e0a\u4e0b\u6587\u7a97\u53e3\u9650\u5236\u9519\u8bef\u8026\u5408maxTokens\uff0c\u9ad8\u914d\u6a21\u578b\u88ab\u9650\u5236",
+      "comment_assessment": {
+        "last_activity": "2026-07-01",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/microsoft/vscode/issues/322095",
+      "repo": "microsoft/vscode",
+      "issue_number": 322095,
+      "status": "analyzed",
+      "timestamp": "2026-07-02T04:07:00Z",
+      "score": 14,
+      "summary": "Snap\u7248\u672c6\u670810\u65e5\u540e\u505c\u6b62\u63a5\u6536\u66f4\u65b0",
+      "comment_assessment": {
+        "last_activity": "2026-07-01",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/directus/directus/issues/27804",
+      "repo": "directus/directus",
+      "issue_number": 27804,
+      "status": "analyzed",
+      "timestamp": "2026-07-02T04:07:00Z",
+      "score": 13,
+      "summary": "\u51e0\u4f55\u7c7b\u578b\u5b57\u6bb5\u66f4\u6539Allow NULL\u65f6\u7c7b\u578b\u88ab\u91cd\u7f6e\u4e3aANY",
+      "comment_assessment": {
+        "last_activity": "2026-07-01",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
+    },
+    {
+      "issue_url": "https://github.com/bitfocus/companion/issues/3398",
+      "repo": "bitfocus/companion",
+      "issue_number": 3398,
+      "status": "analyzed",
+      "timestamp": "2026-07-02T04:07:00Z",
+      "score": 12,
+      "summary": "\u6a21\u62df\u5668\u6309\u94ae\u4e8b\u4ef6\u91cd\u590d\u89e6\u53d1\uff0c\u4e8b\u4ef6\u76d1\u542c\u5668\u672acleanup",
+      "comment_assessment": {
+        "last_activity": "2026-07-01",
+        "has_existing_pr": false,
+        "maintainer_stance": "no-response",
+        "skip_reason": null
+      }
     }
   ],
-  "last_scan": "2026-07-01T04:07:00Z",
+  "last_scan": "2026-07-02T04:07:00Z",
   "stats": {
-    "total_found": 84,
+    "total_found": 90,
     "total_fixed": 4,
-    "total_analyzed": 33,
+    "total_analyzed": 39,
     "total_skipped": 0,
     "total_failed": 0
   }
