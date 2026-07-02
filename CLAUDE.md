@@ -6,6 +6,7 @@ Research-only automation: discover trending AI/Agent/LLM projects, find 6 high-q
 
 - `config.json` — Feishu user open_id (gitignored, see `config.example.json`)
 - `repos.json` — priority repo list, editable (tracked, see `repos.example.json` for format)
+- `watchlist.json` — secondary AI/Agent/LLM repos to scan each round (tracked, see `watchlist.example.json`)
 
 ## Core Rules
 
@@ -51,7 +52,26 @@ if [ -n "$REPOS" ]; then
 fi
 ```
 
-**Dynamic expansion**: periodically discover new fast-growing AI/Agent/LLM repos (stars > 10k, growth > 1k/week, language Go/Python/Rust/TypeScript, topic `agent`/`llm`/`ai`). When found, append to `repos.json`.
+**Dynamic expansion**: periodically discover new fast-growing AI/Agent/LLM repos (stars > 10k, growth > 1k/week, language Go/Python/Rust/TypeScript, topic `agent`/`llm`/`ai`). When found, append to `repos.json` or `watchlist.json`.
+
+#### 1a-b. Watchlist Repos (secondary scan)
+
+Read the watchlist from `watchlist.json`. These are non-priority AI/Agent/LLM repos scanned with the same criteria but relaxed standards. Use the same scan pattern as priority repos.
+
+```bash
+WATCHLIST=$(python3 -c "import json; print(' '.join(r['repo'] for r in json.load(open('$HOME/issue-hunter-loop/watchlist.json'))))" 2>/dev/null || echo "")
+if [ -n "$WATCHLIST" ]; then
+  for repo in $WATCHLIST; do
+    gh api "repos/$repo/issues?labels=bug&state=open&per_page=6&sort=updated" \
+      --jq '.[] | "#\(.number) [👍\(.reactions.total_count)] [💬\(.comments)] [\(.updated_at[:10])] \(.title)"' &
+    gh api "repos/$repo/issues?labels=enhancement&state=open&per_page=3&sort=updated" \
+      --jq '.[] | "#\(.number) [👍\(.reactions.total_count)] [💬\(.comments)] [\(.updated_at[:10])] \(.title)"' &
+  done
+  wait
+fi
+```
+
+Watchlist issues can feed into both Tier A (if quality is high) and Tier B exploration slots.
 
 #### 1b. GitSense — automated issue discovery
 
