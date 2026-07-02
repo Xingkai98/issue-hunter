@@ -1,7 +1,3 @@
 [
-  {"repo": "headroomlabs-ai/headroom", "stars": 55000, "language": "Go/Python", "focus": "LLM token compression library"},
-  {"repo": "ollama/ollama", "stars": 175000, "language": "Go", "focus": "local LLM runtime and model serving"},
-  {"repo": "langgenius/dify", "stars": 147000, "language": "TypeScript/Python", "focus": "agentic workflow platform"},
-  {"repo": "langchain-ai/langchain", "stars": 140000, "language": "Python", "focus": "agent engineering framework"},
-  {"repo": "esengine/DeepSeek-Reasonix", "stars": 25000, "language": "TypeScript", "focus": "DeepSeek-native coding agent"}
+  {"repo": "headroomlabs-ai/headroom", "stars": 55000, "language": "Go/Python", "focus": "LLM token compression library"}
 ]

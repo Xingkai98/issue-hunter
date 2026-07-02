@@ -1,62 +1,40 @@
-# Issue Hunter Loop — Research & Analysis
+# Issue Hunter Loop — Research & Implementation
 
-Research-only automation: discover trending AI/Agent/LLM projects, find 6 high-quality issues (3 from priority repos, 3 from open exploration), analyze background and design fix strategies, produce a report.
+Research + implement: discover trending AI/Agent/LLM projects, find 15 high-quality issues (5 Tier A + 10 Tier B), analyze, then implement the top 5 with highest merge probability. Produce a report + handoff doc.
 
 ## Configuration
 
-- `config.json` — Feishu user open_id (gitignored, see `config.example.json`)
-- `repos.json` — priority repo list, editable (tracked, see `repos.example.json` for format)
-- `watchlist.json` — secondary AI/Agent/LLM repos to scan each round (tracked, see `watchlist.example.json`)
+- `config.json` — Feishu user open_id + drive folder token (gitignored, see `config.example.json`)
+- `repos.json` — Tier A repo list, editable (tracked, see `repos.example.json` for format)
+- `watchlist.json` — user-curated watchlist for Tier B, editable (tracked, see `watchlist.example.json`)
 
 ## Core Rules
 
-- **所有产出（报告、简报、分析）必须使用简体中文** — 包括 issue 标题可以保留原文，但背景、问题分析、修复方案等描述性内容必须翻译为中文
-- **Research only** — do NOT fork, clone, fix, or push code
+- **所有产出（报告、简报、分析）必须使用简体中文**
 - Work inside `~/issue-hunter-loop/`
-- Read priority repos from `repos.json` at runtime — if empty or yields nothing useful, fill all 6 slots from exploration
-- Track all processed issues in `state.json` — check it before selecting candidates, NEVER re-process an issue. `state.json` is the structural dedup mechanism. Every analyzed issue goes in, no exceptions.
-- One report per loop iteration, **always 6 issues**
-- Output report to `reports/YYYY-MM-DD-HHmm.md`
+- Track all processed issues in `state.json` — NEVER re-process
+- One report per loop iteration, **always 15 issues** (5 Tier A + 10 Tier B)
+- From the 15, select top 5 by merge probability and **actually implement them**
+- Output: report → `reports/YYYY-MM-DD-HHmm.md`, handoff → `/tmp/issue-hunter-handoff-YYYY-MM-DD.md`
 
-## Workflow
+---
 
-### 0. Cleanup
+## Phase 1: Discovery
 
-Remove repos from `repos/` whose PRs are merged/closed (keep workspace lean).
-
-```bash
-du -sh ~/issue-hunter-loop/repos/*/ | sort -rh
-# rm -rf ~/issue-hunter-loop/repos/<stale-repo>
-```
-
-### 1. Multi-Source Discovery
-
-Use **four sources** in parallel, then merge and deduplicate:
-
-#### 1a. Priority Repos (scan first)
-
-Read the priority repo list from `repos.json`. If the file is empty `[]` or missing, skip this step and source all 6 candidates from exploration (1b–1d).
+### 1a. Tier A — repos.json (10 repos)
 
 ```bash
-# Read priority repos from config
-REPOS=$(python3 -c "import json; print(' '.join(r['repo'] for r in json.load(open('$HOME/issue-hunter-loop/repos.json'))))" 2>/dev/null || echo "")
-
-if [ -n "$REPOS" ]; then
-  for repo in $REPOS; do
-    gh api "repos/$repo/issues?labels=bug&state=open&per_page=10&sort=updated" \
-      --jq '.[] | "#\(.number) [👍\(.reactions.total_count)] [\(.updated_at[:10])] \(.title)"' &
-    gh api "repos/$repo/issues?labels=enhancement&state=open&per_page=5&sort=updated" \
-      --jq '.[] | "#\(.number) [👍\(.reactions.total_count)] [\(.updated_at[:10])] \(.title)"' &
-  done
-  wait
-fi
+REPOS=$(python3 -c "import json; print(' '.join(r['repo'] for r in json.load(open('$HOME/issue-hunter-loop/repos.json'))))" 2>/dev/null)
+for repo in $REPOS; do
+  gh api "repos/$repo/issues?labels=bug&state=open&per_page=8&sort=updated" \
+    --jq '.[] | "#\(.number) [👍\(.reactions.total_count)] [💬\(.comments)] [\(.updated_at[:10])] \(.title)"' &
+  gh api "repos/$repo/issues?labels=enhancement&state=open&per_page=3&sort=updated" \
+    --jq '.[] | "#\(.number) [👍\(.reactions.total_count)] [💬\(.comments)] [\(.updated_at[:10])] \(.title)"' &
+done
+wait
 ```
 
-**Dynamic expansion**: periodically discover new fast-growing AI/Agent/LLM repos (stars > 10k, growth > 1k/week, language Go/Python/Rust/TypeScript, topic `agent`/`llm`/`ai`). When found, append to `repos.json` or `watchlist.json`.
-
-#### 1a-b. Watchlist Repos (secondary scan)
-
-Read the watchlist from `watchlist.json`. These are non-priority AI/Agent/LLM repos scanned with the same criteria but relaxed standards. Use the same scan pattern as priority repos.
+### 1b. Tier B source 1 — watchlist.json
 
 ```bash
 WATCHLIST=$(python3 -c "import json; print(' '.join(r['repo'] for r in json.load(open('$HOME/issue-hunter-loop/watchlist.json'))))" 2>/dev/null || echo "")
@@ -71,255 +49,227 @@ if [ -n "$WATCHLIST" ]; then
 fi
 ```
 
-Watchlist issues can feed into both Tier A (if quality is high) and Tier B exploration slots.
-
-#### 1b. GitSense — automated issue discovery
+### 1c. Tier B source 2 — GitHub Trending + global search
 
 ```bash
-export PATH="$HOME/.local/bin:$PATH"
+# Trending AI repos
+gh api "search/repositories?q=stars:>3000+pushed:>$(date -d '30 days ago' +%Y-%m-%d)+topic:ai&sort=stars&order=desc&per_page=10" \
+  --jq '.items[] | "\(.full_name) [⭐\(.stargazers_count)] [push:\(.pushed_at[:10])] \(.description[:120])"'
 
-# Find issues matching AI/agent skills in repos with >500 stars
-gitsense find --skills python,typescript,rust,go,llm,ai-agent --stars 500 \
-  --labels bug,enhancement,help+wanted --updated-days 30 --limit 20 --no-llm
+# Fast-growing 2026 agent repos
+gh api "search/repositories?q=created:>2026-01-01+stars:>2000+topic:agent&sort=stars&order=desc&per_page=8" \
+  --jq '.items[] | "\(.full_name) [⭐\(.stargazers_count)] [创建:\(.created_at[:10])] \(.description[:120])"'
 
-# Evaluate repo quality before diving in
-gitsense radar --skills python,typescript,llm --days 90 --sample 20
+# Global bug search (spam-filtered)
+gh search issues --label bug --state open --sort updated --limit 25 \
+  --json number,title,url,repository,commentsCount,updatedAt | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+skip = {...}  # maintained spam list
+for d in data:
+    r = d['repository']['nameWithOwner']
+    if any(s.lower() in r.lower() for s in skip): continue
+    print(f\"{r}#{d['number']} [{d['commentsCount']}💬] {d['title'][:130]}\")
+"
 ```
 
-#### 1c. GitHub Trending — discover hot repos
+**Dynamic expansion**: discover new fast-growing AI/Agent/LLM repos (stars > 10k, growth > 1k/week). Add to `repos.json` (if core) or `watchlist.json` (if niche/experimental).
 
-**IMPORTANT:** Use URL query string format, NOT `-f q=`. The `-f` flag returns 404 on the search endpoint.
+---
 
-```bash
-# Hot AI repos — pushed recently, stars > 3000
-gh api "search/repositories?q=stars:>3000+pushed:>$(date -d '30 days ago' +%Y-%m-%d)+topic:ai&sort=stars&order=desc&per_page=15" \
-  --jq '.items[] | "\(.full_name) [⭐\(.stargazers_count)] [pushed:\(.pushed_at[:10])] \(.description[:120])"'
+## Phase 2: Filter, Score, Community Assessment
 
-# Fast-growing agent repos — created this year, stars > 2000
-gh api "search/repositories?q=created:>2026-01-01+stars:>2000+topic:agent&sort=stars&order=desc&per_page=10" \
-  --jq '.items[] | "\(.full_name) [⭐\(.stargazers_count)] [created:\(.created_at[:10])] \(.description[:120])"'
-
-# LLM repos with recent activity
-gh api "search/repositories?q=stars:>5000+pushed:>$(date -d '30 days ago' +%Y-%m-%d)+topic:llm&sort=stars&order=desc&per_page=10" \
-  --jq '.items[] | "\(.full_name) [⭐\(.stargazers_count)] [pushed:\(.pushed_at[:10])] \(.description[:120])"'
-```
-
-#### 1d. Global search — bugs with community interest
-
-```bash
-# Bugs with comments and reactions (indicates maintainer/user engagement)
-gh search issues --label bug --state open --sort updated --limit 30 \
-  --json number,title,url,repository,commentsCount,updatedAt
-
-# Bugs + help wanted in quality repos
-gh search issues --label "help wanted" --label bug --state open --sort updated --limit 20 \
-  --json number,title,url,repository,commentsCount,updatedAt
-```
-
-### 2. Filter & Score Candidates
-
-**Must-pass filters:**
-- Stars > 100 (or well-known org like `rust-lang/`, `microsoft/`, etc.)
+### Must-pass filters
+- Stars > 100 (or well-known org)
 - Pushed within last 30 days
 - Language: Go, Python, Rust, TypeScript
 - NOT a hacktoberfest/spam/template repo
-- NOT already in `state.json` (check by `issue_url` — exact match or same repo+number)
+- NOT already in `state.json`
 
-**Scoring dimensions** (1-5 each, total /25):
-
+### Scoring (1-5 each, total /25)
 | Dimension | 5 points | 1 point |
 |-----------|----------|---------|
-| **Technical depth** | Real bug with repro steps, stack traces, error messages | Vague description, no details |
-| **Maintainer engagement** | OWNER/MEMBER has commented | Zero comments, no engagement |
-| **Community interest** | 3+ 👍 reactions, multiple users confirming | Zero reactions |
-| **Scope clarity** | Clear acceptance criteria, specific files/hints | "Refactor entire X", no boundaries |
-| **Analysis value** | Can write an insightful fix design | Trivial or purely config/typo |
+| Technical depth | Real bug with repro steps, stack traces | Vague description |
+| Maintainer engagement | OWNER/MEMBER commented | Zero engagement |
+| Community interest | 3+ 👍, multiple confirmations | Zero reactions |
+| Scope clarity | Clear acceptance criteria, file hints | No boundaries |
+| Merge probability | Simple fix, active maintainer, no CLA barrier | Complex, CLA required, inactive |
 
-**Red flags (auto-skip):**
-- Already has an active assignee or linked PR
-- `/claim` comments from active contributors
-- Auth/security, database migrations, payment logic
-- Pure data entry, typo fixes, config changes
-- `hacktoberfest` or `good first issue` labels (too competitive, too shallow)
-
-### 3. Community Status Assessment (MANDATORY)
-
-**Before final selection**, read the full comment thread of each shortlisted candidate. Assess:
-
-#### A. Implementation status
-- Is there an existing PR linked in the comments? If so:
-  - What's its status? (open/closed/merged/draft)
-  - What's the quality? (passes CI? reviewed? maintainer feedback?)
-  - If a good implementation already exists → **demote heavily or skip**. The issue is already handled.
-- Are there comments like "I'm working on this" or "taking this" from active contributors? → **skip if claimed**.
-
-#### B. Timeliness
-- When was the last meaningful comment (not stale bot, not +1)?
-- If last activity > 60 days ago → **-2 to score** (may be stale or low priority)
-- If last activity < 7 days ago → **+1 to score** (hot topic)
-- Is the issue still reproducible on the latest version? Check for "still broken on vX.Y.Z" comments.
-
-#### C. Community viability
-- Are there multiple users confirming the same issue? → **strong signal**
-- Is there maintainer pushback? ("this is by design", "won't fix") → **skip**
-- Is the discussion constructive (debugging, narrowing down) or noise ("+1", "me too")?
-- Has a maintainer said "PR welcome" or "lgtm"? → **strong signal**
-
-**Adjust scores** based on this assessment before selecting the final 3.
-
-### 4. Select Top 6
-
-Select **6 issues total**, split across two tiers:
-
-**Tier A — 3 from priority repos** (if available):
-- Pick the 3 highest-scoring issues discovered from `repos.json`
-- If priority repos are empty or yield < 3 viable candidates, fill remaining slots from exploration
-
-**Tier B — 3 from open exploration** (trending, GitSense, global search):
-- Pick the 3 highest-scoring issues from all non-priority sources
-- Prioritize recently trending repos, fast-growing projects, and unexpected discoveries
-
-**Diversity rules** (apply across all 6):
-- No more than 2 issues from the same repo
-- At least 2 different languages across the set
-- Mix of bug fixes and well-scoped enhancements
-
-Prefer:
-1. **Real bugs over feature requests** (more insight value)
-2. **Active community** (comments, reactions, recent activity)
-3. **Diverse technologies** (not all TypeScript, not all Python)
-4. **No existing quality implementation** (don't duplicate work)
-
-### 5. Deep Analysis — For Each Issue
-
-For each of the 3 selected issues, analyze:
-
-#### A. Background
-- What is this project? Stars, language, purpose
-- What subsystem/component is affected?
-- Has the maintainer engaged? What did they say?
-- Are there related issues or PRs?
-
-#### B. Problem or Requirement
-- What exactly is broken or missing?
-- Can we reproduce it just by reading the issue + code?
-- What's the user impact? (who's affected, how badly)
-- Edge cases or constraints mentioned
-
-#### C. Fix Strategy Design
-- **Root cause analysis**: trace through code if possible (read relevant files)
-- **Proposed approach**: what to change, at a high level
-- **Files to modify**: list specific paths with line ranges
-- **Risk assessment**: what could go wrong, what tests are needed
-- **Alternative approaches**: if there are multiple ways, compare them
-
-Use `gh issue view` and `gh api` to read issue bodies and comments. If the fix strategy requires reading actual source code, use `gh api "repos/<owner>/<repo>/contents/<path>"` to fetch files without cloning.
-
-### 6. Write Report
-
-Write to `~/issue-hunter-loop/reports/YYYY-MM-DD-HHmm.md`:
-
-```markdown
-# Issue Hunter Report — YYYY-MM-DD HH:mm
-
-## Sources scanned
-- Priority repos: X issues found
-- GitSense: X candidates
-- GitHub Trending: X new repos discovered
-- Global search: X results
+### Community Status Assessment (MANDATORY)
+- Read full comment thread for each shortlisted candidate
+- **Existing implementation?** → if quality PR exists, demote/skip
+- **Timeliness:** last activity < 7 days (+1), > 60 days (-2)
+- **Maintainer stance:** "lgtm"/"PR welcome" → strong signal; "wont fix" → skip
+- **CLA/contributor gate?** → note in assessment, affects merge probability
 
 ---
 
-## Issue 1: [repo] #N — [title]
+## Phase 3: Select 15 Issues
 
-**Link:** [url]
-**Score:** X/20 (depth: X, engagement: X, interest: X, clarity: X, value: X)
+**Tier A — 5 from repos.json:** highest-scoring issues across diverse repos (max 2 from same repo)
 
-### Background
-...
+**Tier B — 10 total:**
+- 5 from watchlist.json (or exploration if watchlist is empty/insufficient)
+- 5 from any other repos (GitHub trending, global search, serendipitous discovery)
 
-### Problem
-...
-
-### Fix Strategy
-...
+**Diversity rules:** no more than 3 from same repo across all 15. Mix of bugs and enhancements. At least 3 different languages.
 
 ---
 
-## Issue 2: [repo] #N — [title]
+## Phase 4: Deep Analysis
 
-...
-
----
-
-## Issue 3: [repo] #N — [title]
-
-...
+For each of the 15 issues:
+- **背景：** What is this project? What subsystem is affected?
+- **问题：** What exactly is broken? User impact? Repro steps?
+- **修复方案：** Root cause, files to modify, risk assessment, alternative approaches
+- **合入评估：** Merge probability reasoning (maintainer stance, CLA, scope)
 
 ---
 
-## Summary
-- Total candidates scanned: X
-- Final 3 selection rationale: ...
-- New repos added to watchlist: ...
-```
+## Phase 5: Write Report
 
-### 7. Upload to Feishu Drive
+Write to `~/issue-hunter-loop/reports/YYYY-MM-DD-HHmm.md`. Chinese output.
 
-Import the report as a Feishu docx into the `Issue Hunter Reports` folder:
+---
+
+## Phase 6: Upload to Feishu Drive
 
 ```bash
 FOLDER_TOKEN=$(python3 -c "import json; print(json.load(open('$HOME/issue-hunter-loop/config.json'))['feishu']['drive_folder_token'])")
-
-lark-cli drive +import --type docx \
-  --file ~/issue-hunter-loop/reports/YYYY-MM-DD-HHmm.md \
-  --folder-token "$FOLDER_TOKEN" \
-  --name "Issue Hunter Report YYYY-MM-DD HH:mm" \
-  --as user
+lark-cli drive +import --type docx --file ~/issue-hunter-loop/reports/YYYY-MM-DD-HHmm.md \
+  --folder-token "$FOLDER_TOKEN" --name "Issue Hunter 报告 YYYY-MM-DD HH:mm" --as user
 ```
 
-Requires user auth with `space:folder:create` and `drive:docs:create` scopes.
+---
 
-### 8. Send Briefing via Feishu
-
-Send a concise text summary to the user via Feishu DM:
+## Phase 7: Send Feishu Briefing
 
 ```bash
-FEISHU_USER_ID=$(cat ~/issue-hunter-loop/config.json | python3 -c "import sys,json; print(json.load(sys.stdin)['feishu']['user_open_id'])")
-lark-cli im +messages-send --as bot --user-id "$FEISHU_USER_ID" \
-  --markdown $'## 🎯 Issue Hunter 简报 — YYYY-MM-DD\n\n**Issue 1:** [repo] #N — title\n- 背景：...\n- 方案：...\n\n**Issue 2:** ...\n\n**Issue 3:** ...\n\n📄 完整报告：`reports/YYYY-MM-DD-HHmm.md`'
+FEISHU_ID=$(python3 -c "import json; print(json.load(open('$HOME/issue-hunter-loop/config.json'))['feishu']['user_open_id'])")
+lark-cli im +messages-send --as bot --user-id "$FEISHU_ID" --markdown $'简报内容'
 ```
 
-### 9. Update State
+---
 
-Add entries to `state.json` for all 6 issues:
+## Phase 8: Implement Top 5
+
+**From the 15 analyzed issues, select the top 5 by merge probability.** Then for each:
+
+### 8.1 Read CONTRIBUTING.md FIRST
+- Commit format (Conventional Commits, DCO sign-off, trailers)
+- Test requirements (must pass before PR)
+- CLA / contributor gate status
+- Branch naming convention
+
+### 8.2 Fork, Branch, Implement
+```bash
+gh repo fork <owner/repo> --clone --remote -- ~/issue-hunter-loop/repos/<repo-name>
+cd ~/issue-hunter-loop/repos/<repo-name>
+git checkout -b fix/<issue-number>-<short-description> upstream/main
+# ... implement the fix ...
+```
+
+### 8.3 Self-Verify (MANDATORY)
+- **Type check:** `tsgo --noEmit` / `mypy` / `pyright`
+- **Lint:** `biome check` / `ruff` / `eslint`
+- **Tests:** Run the repo's test suite. If the repo requires specific test commands (e.g. `scripts/run_tests.sh`), use those.
+- **New tests:** Add regression test for the fix
+- If any verification fails, fix before proceeding.
+
+### 8.4 Commit (Follow Repo Convention)
+```bash
+git add <explicit paths, NEVER git add -A>
+git commit -s -m "fix(scope): description
+
+Details...
+
+Fixes #N
+
+Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+Co-Authored-By: Happy <yesreply@happy.engineering>
+"
+```
+
+### 8.5 Push to Personal Fork
+```bash
+git push origin <branch>
+# NEVER push to upstream
+# NEVER create a PR without user approval
+```
+
+---
+
+## Phase 9: Generate Handoff Document
+
+Write to `/tmp/issue-hunter-handoff-YYYY-MM-DD.md`:
+
+```markdown
+# Issue Hunter Handoff — YYYY-MM-DD
+
+## Implemented (5 issues)
+
+### 1. [repo] #N — title
+- **Branch:** Xingkai98/<repo>:fix/N-short-desc
+- **Issue:** <url>
+- **Change:** <1-line summary>
+- **Diff:** <brief description of changes>
+- **Verification:** build ✓/✗, lint ✓/✗, tests ✓/✗
+- **Contributing rules:** CLA needed? Commit format? Test requirements?
+- **Risk:** low/medium/high
+
+### 2. ...
+...
+
+## Analyzed (10 issues, not implemented)
+### 6. [repo] #N — title
+- **Score:** X/25
+- **Merge probability:** reasoning
+- **Why not implemented:** <lower merge prob / complex / CLA / already has PR>
+
+### 7. ...
+...
+
+## Suggested Skills
+- `review` — review the 5 implemented branches
+```
+
+---
+
+## Phase 10: Update State
+
+Add entries to `state.json` for all 15 analyzed issues + 5 implemented.
 
 ```json
 {
-  "issue_url": "https://github.com/owner/repo/issues/N",
+  "issue_url": "...",
   "repo": "owner/repo",
   "issue_number": N,
-  "status": "analyzed|skipped",
+  "status": "analyzed|implemented",
   "timestamp": "ISO-8601",
   "score": X,
-  "summary": "one-line summary",
-  "comment_assessment": {
-    "last_activity": "ISO-8601",
-    "has_existing_pr": false,
-    "pr_quality": "none|draft|in-review|ready",
-    "maintainer_stance": "lgtm|pr-welcome|no-response|wont-fix",
-    "skip_reason": null
-  }
+  "summary": "...",
+  "comment_assessment": {...}
 }
 ```
 
-## Quality Standards
+---
 
-- Issues must have **real technical substance** — not typo fixes or trivial config
-- Fix strategies must be **actionable** — someone should be able to implement from this analysis
-- Reports must cite **specific code paths and file names** where possible
-- **No PRs, no forks, no clones, no pushing code**
+## Phase 11: Update state.json
+- Append all 15 issues (15 analyzed, 5 of which also implemented)
+- Update `last_scan` timestamp
+- Increment stats counters
+
+---
+
+## Safety Rules
+
+- NEVER push to upstream repo — only to `origin` (personal fork)
+- NEVER create a PR without user approval
+- NEVER use `git add -A` — always commit by explicit path
+- NEVER skip CONTRIBUTING.md — read it first
+- NEVER claim tests pass if you didn't run them
+- If anything seems off or risky, skip the implementation and note why in the handoff
 
 ## Durable Loop
 
-Scheduled via CronCreate: daily at 4:00 AM, durable, recurring.
+Scheduled via CronCreate: daily at 4:07 AM, durable, recurring.

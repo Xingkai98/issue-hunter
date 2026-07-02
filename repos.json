@@ -1,8 +1,12 @@
 [
   {"repo": "openclaw/openclaw", "stars": 380000, "language": "TypeScript", "focus": "AI agent runtime"},
-  {"repo": "NousResearch/hermes-agent", "stars": 203000, "language": "Python", "focus": "AI agent framework"},
+  {"repo": "NousResearch/hermes-agent", "stars": 205000, "language": "Python", "focus": "AI agent framework"},
+  {"repo": "ollama/ollama", "stars": 175000, "language": "Go", "focus": "local LLM runtime and model serving"},
+  {"repo": "langgenius/dify", "stars": 147000, "language": "TypeScript/Python", "focus": "agentic workflow platform"},
+  {"repo": "langchain-ai/langchain", "stars": 140000, "language": "Python", "focus": "agent engineering framework"},
   {"repo": "earendil-works/pi", "stars": 66000, "language": "TypeScript", "focus": "Agent toolkit (LLM, TUI, CLI)"},
   {"repo": "karpathy/nanochat", "stars": 55000, "language": "Python", "focus": "LLM chat from scratch"},
   {"repo": "jingyaogong/minimind", "stars": 52000, "language": "Python", "focus": "LLM training/inference"},
-  {"repo": "HKUDS/nanobot", "stars": 44000, "language": "Python", "focus": "AI agent framework"}
+  {"repo": "HKUDS/nanobot", "stars": 44000, "language": "Python", "focus": "AI agent framework"},
+  {"repo": "esengine/DeepSeek-Reasonix", "stars": 25000, "language": "TypeScript", "focus": "DeepSeek-native coding agent"}
 ]
