@@ -1,25 +1,29 @@
 # Issue Hunter
 
-Daily AI-powered open source issue discovery and analysis. Scans trending AI/Agent/LLM repos, finds high-quality issues, and produces structured analysis reports — no code, just insight.
+Daily AI-powered open source issue discovery, deep analysis, and implementation. Scans 10 priority repos + user-curated watchlist + trending repos, finds 15 high-quality issues, analyzes them, implements the top 5 by merge probability, and produces a handoff doc for review.
 
 ## How it works
 
 Every day at 4:00 AM, an AI agent:
 
-1. **Multi-source discovery** — scans configurable priority repos (`repos.json`), GitHub trending, GitSense, and global issue search
-2. **Score & filter** — evaluates issues on technical depth, maintainer engagement, community interest, scope clarity, and analysis value
-3. **Community assessment** — reads full comment threads to check for existing implementations, timeliness, and maintainer stance
-4. **Deep analysis** — for 6 issues (3 from priority repos, 3 from open exploration): background, root cause, fix strategy with specific code paths
-5. **Report** — writes `reports/YYYY-MM-DD-HHmm.md` and sends a briefing via Feishu
+1. **Multi-source discovery** — scans 10 priority repos (`repos.json`), user-curated watchlist (`watchlist.json`), GitHub trending, and global search
+2. **Score & filter** — evaluates 25-dimension scoring across technical depth, maintainer engagement, community interest, scope clarity, merge probability
+3. **Community assessment** — reads full comment threads; checks for existing implementations, timeliness, maintainer stance, CLA barriers
+4. **Select 15** — 5 from priority repos (Tier A) + 10 from watchlist + exploration (Tier B)
+5. **Deep analysis** — background, root cause, fix strategy for all 15
+6. **Implement top 5** — fork, branch, code, self-verify (lint, type-check, tests), push to personal fork. No PR without approval.
+7. **Handoff doc** — generates `/tmp/issue-hunter-handoff-YYYY-MM-DD.md` for review
+8. **Report** — writes `reports/YYYY-MM-DD-HHmm.md` and sends briefing via Feishu
 
 ## Configuration
 
-- `repos.json` — priority repository list (editable, tracked in git)
-- `config.json` — Feishu user ID (gitignored, template at `config.example.json`)
+- `repos.json` — 10 priority repos for Tier A (editable, tracked)
+- `watchlist.json` — user-curated watchlist for Tier B (editable, tracked)
+- `config.json` — Feishu IDs (gitignored, template at `config.example.json`)
 
 ## Output
 
-Each report covers 6 issues with:
+Each report covers 15 issues with:
 - Project background (what it does, stars, language)
 - Problem description (what's broken, user impact, repro steps)
 - Fix strategy design (root cause, files to modify, risk assessment, alternatives)
